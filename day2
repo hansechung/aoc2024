@@ -1,0 +1,38 @@
+Spyder Editor
+
+This is a temporary script file.
+"""
+
+import os
+
+new_dir = "C:/Users/Hanse/Desktop/aoc2024/day_2"
+os.chdir(new_dir)
+
+with open("input.txt") as datafile:
+    mylist = datafile.read().splitlines()
+
+def checklevels(rlist):
+    rlen = len(rlist)
+    diff = [rlist[x+1] - rlist[x] for x in range(rlen -1)]
+    p1_p3 = (all(item > 0 for item in diff) and all(item < 4 for item in diff))
+    m1_m3 = (all(item < 0 for item in diff) and all(item > -4 for item in diff))
+    return(p1_p3 or m1_m3)
+    
+safe = [0] * 1000
+safe2 = [0] * 1000
+
+for i in range(1000):
+    clist = [int(x) for x in mylist[i].split(" ")]
+    clen = len(clist)
+    safe[i] = checklevels(clist)
+    safe2[i] = safe[i]
+    
+    if safe2[i] != True:
+    
+        for k in range(clen):
+            dlist = [clist[j] for j in range(clen) if j != k]
+            if checklevels(dlist) == True:
+                safe2[i] = True
+
+print("number safe", sum(safe))
+print("dampener number safe", sum(safe2))
