@@ -1,0 +1,78 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Dec  6 14:00:25 2024
+
+@author: Hanse
+"""
+
+import os
+import csv
+import numpy as np
+
+new_dir = "C:/Users/Hanse/Desktop/aoc2024/day_4"
+os.chdir(new_dir)
+    
+with open('input.txt', 'r') as f:
+    xmas_lol = list(csv.reader(f, delimiter = '\t'))
+
+with open('input.txt', 'r') as f:
+    xmas_list = list(csv.reader(f, delimiter = '\t'))
+
+#create lists and arrays from the input
+for i in range(len(xmas_lol)):
+    #xmas is a list of 1 element lists of strings
+    #convert to a list of strings and a list of lists of letters
+    xmas_list[i] = xmas_lol[i][0]
+    xmas_lol[i] = list(xmas_lol[i][0])
+
+xarray = np.vstack(xmas_lol)
+
+xarray_tr = np.transpose(xarray)
+xmas_tr_lol = xarray_tr.reshape(140,140).tolist()
+xmas_tr_list = [''.join(xmas_tr_lol[i]) for i in range(len(xmas_lol))]
+
+          
+def hcount(mylist):
+    counter = 0
+    #find both XMAS and SAMX in each row
+    for j in range(len(mylist)):
+        counter += mylist[j].count('XMAS')
+        counter += mylist[j].count('SAMX')
+    return counter
+
+def dcount(myarray):
+    counter = 0
+    arrsize = len(myarray)
+    for k in range(arrsize - 3):
+        for l in range(arrsize - 3):
+            chkstr = myarray[k][l]+myarray[k+1][l+1]+myarray[k+2][l+2]+myarray[k+3][l+3]
+            if (chkstr == 'XMAS' or chkstr == 'SAMX'):
+                counter +=1
+    return counter
+
+def drevcount(myarray):
+    counter = 0
+    arrsize = len(myarray)
+    for k in range(arrsize - 3):
+        for l in range(arrsize - 3):
+            chkstr = myarray[k+3][l]+myarray[k+2][l+1]+myarray[k+1][l+2]+myarray[k][l+3]
+            if (chkstr == 'XMAS' or chkstr == 'SAMX'):
+                counter +=1
+    return counter
+
+def x_mascount(myarray):
+    counter = 0
+    arrsize = len(myarray)
+    xstring = []
+    for k in range(arrsize - 2):
+        for l in range(arrsize - 2):
+            xstring = myarray[k+1][l+1] + myarray[k][l] + myarray[k+2][l+2] + myarray[k+2][l] + myarray[k][l+2]
+            if (xstring == 'AMSMS' or xstring == 'AMSSM' or xstring == 'ASMMS' or xstring == 'ASMSM'):
+                counter +=1
+    return counter
+
+tcount = hcount(xmas_list) + hcount(xmas_tr_list) + dcount(xmas_list) + drevcount(xmas_list)
+print(tcount)
+
+scount = x_mascount(xarray)
+print(scount)
