@@ -1,0 +1,65 @@
+import os
+import numpy as np
+
+
+new_dir = "C:/Users/Hanse/Desktop/aoc2024/day_6"
+os.chdir(new_dir)
+    
+maplist = []
+
+with open('input.txt') as df:
+    for mapline in df:
+        maplist.append(list(mapline))
+
+maparray = np.array(maplist)
+rows = maparray.shape[0]
+cols = maparray.shape[1]
+
+pathlist = []
+
+# [-1,0] UP
+# [0,1] RIGHT
+# [1,0] DOWN
+# [0,-1] LEFT
+
+direct = [[-1,0],[0,1],[1,0],[0,-1]]
+
+for i in range(len(maplist)):
+    if '^' in maplist[i]:
+        pathlist.append([i, maplist[i].index('^'),[-1,0]])
+
+def nextstep(plist):
+    x = plist[0]
+    y = plist[1]
+    z = plist[2]
+    if (x == 0 or x == rows or y == 0 or y == cols): 
+        return [x,y,z]
+    nextd = z
+    for j in range(3):
+        if maplist[x+nextd[0]][y+nextd[1]] != '#':
+            return[x+nextd[0],y+nextd[1],nextd]
+        else:
+            match nextd:
+                case [-1,0]:
+                    nextd = [0,1]
+                case [0,1]:
+                    nextd = [1,0]
+                case [1,0]:
+                    nextd = [0,-1]
+                case [0,-1]:
+                    nextd = [-1,0]
+                    
+counter = 0
+
+while nextstep(pathlist[counter]) != pathlist[counter]:
+     pathlist.append(nextstep(pathlist[counter]))
+     counter += 1
+
+steplist = []
+for j in range(len(pathlist)):
+    steplist.append([pathlist[j][0],pathlist[j][1]])
+    
+stepset = set(tuple(a) for a in steplist)
+
+
+print(len(stepset))
