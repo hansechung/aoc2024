@@ -4,62 +4,143 @@ import numpy as np
 
 new_dir = "C:/Users/Hanse/Desktop/aoc2024/day_6"
 os.chdir(new_dir)
-    
+
+#create list of lists representing map
 maplist = []
 
+# dblist = [['.','#','#','.','.'],
+#            ['.','.','.','.','#'],
+#            ['.','.','.','.','.'],
+#            ['.','^','.','#','.'],
+#            ['.','.','.','.','.']
+#           ]
+          
+# dblist = [['.','.','.','.','#','.','.','.','.','.'],
+#           ['.','.','.','.','.','.','.','.','.','#'], 
+#           ['.','.','.','.','.','.','.','.','.','.'],
+#           ['.','.','#','.','.','.','.','.','.','.'],
+#           ['.','.','.','.','.','.','.','#','.','.'],
+#           ['.','.','.','.','.','.','.','.','.','.'],
+#           ['.','#','.','.','^','.','.','.','.','.'],
+#           ['.','.','.','.','.','.','.','.','#','.'],
+#           ['#','.','.','.','.','.','.','.','.','.'],
+#           ['.','.','.','.','.','.','#','.','.','.']
+#         ]
+         
 with open('input.txt') as df:
-    for mapline in df:
-        maplist.append(list(mapline))
+    dlist = df.read().splitlines()
+maplist = [list(dstring) for dstring in dlist]
 
+#create array of empty spaces and obstacles from map
 maparray = np.array(maplist)
-rows = maparray.shape[0]
-cols = maparray.shape[1]
+#dbarray = np.array(dblist)
 
+rows = maparray.shape[0]-1
+cols = maparray.shape[1]-1
+#dbrows = dbarray.shape[0]-1
+#dbcols = dbarray.shape[1]-1
+
+
+#create list for path
 pathlist = []
 
+#define directions for pointer
 # [-1,0] UP
 # [0,1] RIGHT
 # [1,0] DOWN
 # [0,-1] LEFT
-
 direct = [[-1,0],[0,1],[1,0],[0,-1]]
 
+#find starting point and add to pathlist
 for i in range(len(maplist)):
     if '^' in maplist[i]:
-        pathlist.append([i, maplist[i].index('^'),[-1,0]])
+        pathlist.append([i, maplist[i].index('^'),[-1,0],0])
 
-def nextstep(plist):
+# for i in range(len(dblist)):
+#       if '^' in dblist[i]:
+#           pathlist.append([i, dblist[i].index('^'),[-1,0],0])
+
+#find the next step and direction
+#return last step, 1 if at edge or next step, 0 otherwise
+def nextstep(plist, pmap):
     x = plist[0]
     y = plist[1]
-    z = plist[2]
-    if (x == 0 or x == rows or y == 0 or y == cols): 
-        return [x,y,z]
-    nextd = z
-    for j in range(3):
-        if maplist[x+nextd[0]][y+nextd[1]] != '#':
-            return[x+nextd[0],y+nextd[1],nextd]
-        else:
-            match nextd:
-                case [-1,0]:
-                    nextd = [0,1]
-                case [0,1]:
-                    nextd = [1,0]
-                case [1,0]:
-                    nextd = [0,-1]
-                case [0,-1]:
-                    nextd = [-1,0]
-                    
-counter = 0
-
-while nextstep(pathlist[counter]) != pathlist[counter]:
-     pathlist.append(nextstep(pathlist[counter]))
-     counter += 1
-
-steplist = []
-for j in range(len(pathlist)):
-    steplist.append([pathlist[j][0],pathlist[j][1]])
+    nextd = plist[2]
     
-stepset = set(tuple(a) for a in steplist)
+    if (x == 0 or x == rows or y == 0 or y == cols):
+#    if (x == 0 or x == dbrows or y == 0 or y == dbcols): 
+        return [x,y,nextd,1]
+    elif ((pmap[x+nextd[0]][y+nextd[1]] == '.') or (pmap[x+nextd[0]][y+nextd[1]] == '^')): 
+        return[x+nextd[0],y+nextd[1],nextd,0] 
+    
+    else: 
+        while pmap[x+nextd[0]][y+nextd[1]] == '#': 
+            match nextd: 
+                case [-1,0]: 
+                    nextd = [0,1] 
+                case [0,1]: 
+                    nextd = [1,0] 
+                case [1,0]: 
+                    nextd = [0,-1] 
+                case [0,-1]: 
+                    nextd = [-1,0] 
+        return[x+nextd[0],y+nextd[1],nextd,0] 
+                    
+
+#find and move through the path steps
+while nextstep(pathlist[-1][:3],maplist) not in pathlist: 
+    pathlist.append(nextstep(pathlist[-1][:3],maplist))
+    
+# while nextstep(pathlist[-1][:3],dblist) not in pathlist: 
+#    pathlist.append(nextstep(pathlist[-1][:3],dblist))
 
 
-print(len(stepset))
+#convert list w duplicates to set of unique tuples
+def setlist(plist):
+    elist = []
+    #take only the first two items - remove directions from plist
+    for j in range(len(plist)):
+        elist.append([plist[j][0],plist[j][1]])        
+    return set(tuple(a) for a in elist)
+
+#print unique steps
+print(len(setlist(pathlist)))
+#print last step
+print(pathlist[-1])
+
+
+olist = []
+#dbmap = []
+
+#step through the path
+for index, prow in enumerate(pathlist):
+    
+    #restore maplist
+    maplist = maparray.tolist()
+    #dblist = dbarray.tolist()
+    
+    #restore altmap
+    altmap = maplist.copy()
+    #altmap = dblist.copy()
+
+    altpath = [] 
+    altpath.append(pathlist[0])
+
+    if index+1 < len(pathlist):
+        #change the next step to an obstacle on the map
+        nextst = pathlist[index+1][:2] 
+        altmap[nextst[0]][nextst[1]]  = '#'
+    
+        #iterate as long as the last step is not already in the path or at the boundary
+        while ((nextstep(altpath[-1][:3],altmap) not in altpath) and altpath[-1][3] == 0): 
+            altpath.append(nextstep(altpath[-1][:3],altmap))
+    
+        if altpath[-1][3] == 0:
+            olist.append(nextst)
+
+        # altmap[nextst[0]][nextst[1]]  = 'O'
+        # dbmap.append(altmap)
+
+obstlist = [x for x in olist if x != pathlist[0][:2]]
+
+print(len(setlist(obstlist)))
